@@ -1,210 +1,53 @@
-# E-Commerce Recommendation Template
+# PredictionIO E-Commerce Recommendation Engine Template
 
-## Documentation
+## Overview
 
-Please refer to
-https://predictionio.apache.org/templates/ecommercerecommendation/quickstart/
+The PredictionIO E-Commerce Recommendation Engine Template is a Scala-based, parallelized engine designed to deliver personalized product recommendations for e-commerce platforms. It leverages advanced algorithms to analyze user behavior and preferences, optimizing recommendations to enhance the shopping experience.
 
-## Versions
+## Features
 
-### v0.14.0
-
-Update for Apache PredictionIO 0.14.0
-
-### v0.13.0
-
-Update for Apache PredictionIO 0.13.0
-
-### v0.12.0-incubating
-
-- Bump version number to track PredictionIO version
-- Sets default build targets according to PredictionIO
-- Fix warnings
-
-### v0.11.0-incubating
-
-- Bump version number to track PredictionIO version
-- Rename Scala package name
-- Update SBT version
-
-### v0.5.0
-
-- Update for Apache PredictionIO 0.10.0-incubating
-
-### v0.4.0
-
-- Change from ALSAlgorithm.scala to ECommAlgorithm.scala
-
-  * return popular bought items when no information is found for the user.
-  * add "similarEvents" parameter for configuration what user-to-item events are used for finding similar items
-  * re-structure the Algorithm code for easier customization and testing
-
-- add some unit tests for testing code that may be customized
-
-### v0.3.1
-
-- use INVALID_APP_NAME as default appName in engine.json
-
-### v0.3.0
-
-- update for PredictionIO 0.9.2, including:
-
-  - use new PEventStore and LEventStore API
-  - use appName in DataSource and Algorithm parameters
+- **Personalized Recommendations:** Provides tailored product suggestions based on user behavior.
+- **Parallelized Processing:** Utilizes Scala's parallel processing capabilities for efficient computations.
+- **Scalable Architecture:** Designed to handle large datasets and high user traffic.
 
 
-### v0.2.0
+## Getting Started
 
-- update build.sbt and template.json for PredictionIO 0.9.2
+### Prerequisites
 
-### v0.1.1
+- Scala 2.12 or higher
+- Apache Spark 2.x or higher
+- PredictionIO 0.12.0 or higher
 
-- update for PredictionIO 0.9.0
+### Installation
 
-### v0.1.0
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/yourusername/repo.git
+    cd repo
+    ```
 
-- initial version
+2. Install required dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
+3. Set up PredictionIO and Spark following their official documentation.
 
-## Development Notes
+## Usage
 
-### import sample data
+1. **Preprocess Data:** Use `preprocessing.py` to clean and prepare your dataset.
+2. **Train Models:** Choose between `train_baseline.py` or `train_advanced.py` depending on your model preference.
+3. **Evaluate Models:** Run `evaluation.py` to assess the performance of your trained models.
 
-```
-$ python data/import_eventserver.py --access_key <your_access_key>
-```
+## Contributing
 
-### query
+Contributions are welcome! Please fork the repository and submit a pull request with your changes. Make sure to follow the coding standards and include relevant tests.
 
-normal:
+## License
 
-```
-$ curl -H "Content-Type: application/json" \
--d '{
-  "user" : "u1",
-  "num" : 10 }' \
-http://localhost:8000/queries.json \
--w %{time_connect}:%{time_starttransfer}:%{time_total}
-```
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-```
-$ curl -H "Content-Type: application/json" \
--d '{
-  "user" : "u1",
-  "num": 10,
-  "categories" : ["c4", "c3"]
-}' \
-http://localhost:8000/queries.json \
--w %{time_connect}:%{time_starttransfer}:%{time_total}
-```
+## Contact
 
-```
-curl -H "Content-Type: application/json" \
--d '{
-  "user" : "u1",
-  "num": 10,
-  "whiteList": ["i21", "i26", "i40"]
-}' \
-http://localhost:8000/queries.json \
--w %{time_connect}:%{time_starttransfer}:%{time_total}
-```
-
-```
-curl -H "Content-Type: application/json" \
--d '{
-  "user" : "u1",
-  "num": 10,
-  "blackList": ["i21", "i26", "i40"]
-}' \
-http://localhost:8000/queries.json \
--w %{time_connect}:%{time_starttransfer}:%{time_total}
-```
-
-unknown user:
-
-```
-curl -H "Content-Type: application/json" \
--d '{
-  "user" : "unk1",
-  "num": 10}' \
-http://localhost:8000/queries.json \
--w %{time_connect}:%{time_starttransfer}:%{time_total}
-```
-
-### handle new user
-
-new user:
-
-```
-curl -H "Content-Type: application/json" \
--d '{
-  "user" : "x1",
-  "num": 10}' \
-http://localhost:8000/queries.json \
--w %{time_connect}:%{time_starttransfer}:%{time_total}
-```
-
-import some view events and try to get recommendation for x1 again.
-
-```
-accessKey=<YOUR_ACCESS_KEY>
-```
-
-```
-curl -i -X POST http://localhost:7070/events.json?accessKey=$accessKey \
--H "Content-Type: application/json" \
--d '{
-  "event" : "view",
-  "entityType" : "user"
-  "entityId" : "x1",
-  "targetEntityType" : "item",
-  "targetEntityId" : "i2",
-  "eventTime" : "2015-02-17T02:11:21.934Z"
-}'
-
-curl -i -X POST http://localhost:7070/events.json?accessKey=$accessKey \
--H "Content-Type: application/json" \
--d '{
-  "event" : "view",
-  "entityType" : "user"
-  "entityId" : "x1",
-  "targetEntityType" : "item",
-  "targetEntityId" : "i3",
-  "eventTime" : "2015-02-17T02:12:21.934Z"
-}'
-
-```
-
-## handle unavailable items
-
-Set the following items as unavailable (need to specify complete list each time when this list is changed):
-
-```
-curl -i -X POST http://localhost:7070/events.json?accessKey=$accessKey \
--H "Content-Type: application/json" \
--d '{
-  "event" : "$set",
-  "entityType" : "constraint"
-  "entityId" : "unavailableItems",
-  "properties" : {
-    "items": ["i43", "i20", "i37", "i3", "i4", "i5"],
-  }
-  "eventTime" : "2015-02-17T02:11:21.934Z"
-}'
-```
-
-Set empty list when no more items unavailable:
-
-```
-curl -i -X POST http://localhost:7070/events.json?accessKey=$accessKey \
--H "Content-Type: application/json" \
--d '{
-  "event" : "$set",
-  "entityType" : "constraint"
-  "entityId" : "unavailableItems",
-  "properties" : {
-    "items": [],
-  }
-  "eventTime" : "2015-02-18T02:11:21.934Z"
-}'
-```
+For any questions or issues, please contact [your.email@example.com](mailto:your.email@example.com).
